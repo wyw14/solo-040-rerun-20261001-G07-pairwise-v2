@@ -51,6 +51,9 @@ func (s *Service) Authorized(vesselID uuid.UUID, owner string, token uint64) boo
 	return ok && s.admission.OwnerAllowed(vesselID, owner, token, lease, s.now())
 }
 
+// Snapshot returns the current leases for read-side handover aggregation.
+func (s *Service) Snapshot() []model.Lease { return s.registry.Snapshot() }
+
 func (s *Service) Release(ctx context.Context, chamberID string, vesselID uuid.UUID, owner string, token uint64) error {
 	if !s.registry.Release(vesselID, owner, token) {
 		return errors.New("lease owner or fencing token is stale")

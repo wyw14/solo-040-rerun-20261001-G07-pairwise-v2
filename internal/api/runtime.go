@@ -7,6 +7,7 @@ import (
 	"github.com/wyw14/cry-96/internal/admission"
 	"github.com/wyw14/cry-96/internal/cycle"
 	"github.com/wyw14/cry-96/internal/gate"
+	"github.com/wyw14/cry-96/internal/handover"
 	"github.com/wyw14/cry-96/internal/hydraulics"
 	"github.com/wyw14/cry-96/internal/interlock"
 	"github.com/wyw14/cry-96/internal/journal"
@@ -42,6 +43,7 @@ type Runtime struct {
 	Snapshot        *monitor.Snapshot
 	Incidents       *monitor.IncidentReview
 	Health          *monitor.HealthRegistry
+	Handovers       *handover.Service
 	Recovery        *cycle.Recovery
 	Chambers        []string
 	Now             func() time.Time
@@ -106,6 +108,15 @@ func NewRuntime(ctx context.Context, dataDirectory string) (*Runtime, error) {
 			health.Observe(chamberID, device, true, "telemetry current", now())
 		}
 	}
+	handoverStore, err := handover.NewRuntimeBookStore(dataDirectory)
+	if err != nil {
+		return nil, err
+	}
+	handovers := handover.NewService(
+		handoverStore, store, cycleCoordinator, gateCommands, gateState,
+		planner, leaseService, hydraulicsController, admissionService,
+		signalService, safetyService, now,
+	)
 	return &Runtime{
 		Store: store, Recorder: recorder, GateState: gateState,
 		GateCommands: gateCommands, Gates: gateController,
@@ -115,7 +126,8 @@ func NewRuntime(ctx context.Context, dataDirectory string) (*Runtime, error) {
 		Interlocks: interlockCoordinator, Cycles: cycleCoordinator, CycleService: cycleService,
 		Leases: leaseService, LeaseSweeper: leaseSweeper, Safety: safetyService,
 		Snapshot:  monitor.NewSnapshot(cycleCoordinator, gateState, admissionService, signalService, safetyService, now),
-		Incidents: monitor.NewIncidentReview(store), Health: health, Recovery: recovery,
+		Incidents: monitor.NewIncidentReview(store), Health: health,
+		Handovers: handovers, Recovery: recovery,
 		Chambers: chambers, Now: now,
 	}, nil
 }

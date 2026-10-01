@@ -39,7 +39,7 @@ func (r *IncidentReview) List(ctx context.Context) ([]Incident, error) {
 			return nil, err
 		}
 		for _, event := range events {
-			severity, summary, include := incidentMeaning(event.Type)
+			severity, summary, include := IncidentMeaning(event.Type)
 			if !include {
 				continue
 			}
@@ -54,7 +54,8 @@ func (r *IncidentReview) List(ctx context.Context) ([]Incident, error) {
 	return result, nil
 }
 
-func incidentMeaning(kind model.EventType) (string, string, bool) {
+// IncidentMeaning maps a journal event to its review severity and summary.
+func IncidentMeaning(kind model.EventType) (string, string, bool) {
 	switch kind {
 	case model.EventEmergencyStarted:
 		return "critical", "Emergency stop requested", true

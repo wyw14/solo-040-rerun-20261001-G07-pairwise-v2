@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LockFlow 闸室交接簿</title><link rel="stylesheet" href="/assets/styles.css"></head>
+<body>
+<header><div class="brand"><span class="brand-mark">LF</span>LockFlow</div>
+<nav><a href="/operations">Operations</a><a href="/chamber">Chamber</a><a href="/interlocks">Interlocks</a><a href="/incidents">Incidents</a><a aria-current="page" href="/handovers">Handovers</a></nav></header>
+<main>
+  <div class="page-title"><div><h1>闸室交接簿</h1><div class="muted">按班次汇总闸次、计划、待确认命令、租约与事件复盘；确认后封存不可更改</div></div><button id="refresh">刷新</button></div>
+
+  <section class="panel wide">
+    <h2>按班次生成 / 查询</h2>
+    <div class="form-row">
+      <div><label for="q-chamber">闸室</label><select id="q-chamber"><option value="">全部</option><option>chamber-1</option><option>chamber-2</option></select></div>
+      <div><label for="q-status">状态</label><select id="q-status"><option value="">全部</option><option value="draft">草稿</option><option value="confirmed">已确认</option></select></div>
+      <div><label for="q-from">开始时间</label><input id="q-from" type="datetime-local"></div>
+      <div><label for="q-to">结束时间</label><input id="q-to" type="datetime-local"></div>
+    </div>
+    <div class="form-row">
+      <div><label for="gen-chamber">为闸室生成当前班次</label><select id="gen-chamber"><option>chamber-1</option><option>chamber-2</option></select></div>
+      <div><label>&nbsp;</label><button id="generate">生成 / 刷新草稿</button></div>
+    </div>
+    <div class="message" id="message"></div>
+  </section>
+
+  <section class="panel wide">
+    <h2>交接记录</h2>
+    <table><thead><tr><th>班次</th><th>闸室</th><th>状态</th><th>闸次</th><th>未完成计划</th><th>待确认命令</th><th>复盘项</th><th>交班 / 接班</th><th>更新时间</th></tr></thead>
+    <tbody id="books"></tbody></table>
+  </section>
+
+  <section class="panel wide" id="detail-panel" hidden>
+    <div class="page-title"><h2 id="detail-title">交接详情</h2><button id="detail-close" class="danger">关闭</button></div>
+    <div id="detail-body"></div>
+  </section>
+</main>
+<script src="/assets/app.js"></script><script src="/assets/handovers.js"></script>
+</body></html>
