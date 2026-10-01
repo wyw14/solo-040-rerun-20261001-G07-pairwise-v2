@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LockFlow 闸室交接簿</title><link rel="stylesheet" href="/assets/styles.css"></head>
+<body>
+<header><div class="brand"><span class="brand-mark">LF</span>LockFlow</div><nav><a href="/operations">Operations</a><a href="/chamber">Chamber</a><a href="/interlocks">Interlocks</a><a href="/incidents">Incidents</a><a aria-current="page" href="/handovers">交接簿</a></nav></header>
+<main>
+  <div class="page-title"><div><h1>闸室交接簿</h1><div class="muted">按班次生成，确认后快照与原始事件引用不可篡改</div></div><span class="status" id="sealed-hint">已确认记录只读</span></div>
+  <section class="panel wide filters">
+    <form id="query-form" class="form-row four">
+      <div><label for="q-chamber">闸室</label><select id="q-chamber"><option value="">全部</option><option>chamber-1</option><option>chamber-2</option></select></div>
+      <div><label for="q-from">开始日期</label><input id="q-from" type="date"></div>
+      <div><label for="q-to">结束日期</label><input id="q-to" type="date"></div>
+      <div><label>&nbsp;</label><button type="submit">查询</button></div>
+    </form>
+    <form id="open-form" class="form-row four">
+      <div><label for="open-chamber">本班闸室</label><select id="open-chamber"><option>chamber-1</option><option>chamber-2</option></select></div>
+      <div><label for="open-operator">值班员</label><input id="open-operator" placeholder="工号或姓名"></div>
+      <div class="grow"><label>&nbsp;</label><button type="submit" class="wide-btn">打开 / 生成当前班次交接簿</button></div>
+    </form>
+    <div class="message" id="message"></div>
+  </section>
+  <div class="grid">
+    <section class="panel third"><h2>班次记录</h2><div id="book-list" class="book-list"></div></section>
+    <section class="panel" id="detail-panel"><h2>交接明细</h2><div id="detail" class="muted">从左侧选择一条记录，或打开当前班次。</div></section>
+  </div>
+</main>
+<script src="/assets/app.js"></script><script src="/assets/handovers.js"></script>
+</body></html>

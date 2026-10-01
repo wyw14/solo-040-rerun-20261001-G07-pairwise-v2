@@ -7,6 +7,7 @@ import (
 	"github.com/wyw14/cry-96/internal/admission"
 	"github.com/wyw14/cry-96/internal/cycle"
 	"github.com/wyw14/cry-96/internal/gate"
+	"github.com/wyw14/cry-96/internal/handoff"
 	"github.com/wyw14/cry-96/internal/hydraulics"
 	"github.com/wyw14/cry-96/internal/interlock"
 	"github.com/wyw14/cry-96/internal/journal"
@@ -41,6 +42,7 @@ type Runtime struct {
 	Safety          *safety.Service
 	Snapshot        *monitor.Snapshot
 	Incidents       *monitor.IncidentReview
+	Handovers       *handoff.Service
 	Health          *monitor.HealthRegistry
 	Recovery        *cycle.Recovery
 	Chambers        []string
@@ -106,6 +108,19 @@ func NewRuntime(ctx context.Context, dataDirectory string) (*Runtime, error) {
 			health.Observe(chamberID, device, true, "telemetry current", now())
 		}
 	}
+	handoverStore, err := handoff.NewRuntimeBookStore(dataDirectory)
+	if err != nil {
+		return nil, err
+	}
+	handovers, err := handoff.NewService(handoverStore, handoff.Sources{
+		Store: store, Cycles: cycleCoordinator, Gates: gateState,
+		Commands: gateCommands, Planner: planner, Queue: admissionService,
+		Leases: leaseService, Safety: safetyService,
+		Hydraulics: hydraulicsController, Incidents: monitor.NewIncidentReview(store),
+	}, now)
+	if err != nil {
+		return nil, err
+	}
 	return &Runtime{
 		Store: store, Recorder: recorder, GateState: gateState,
 		GateCommands: gateCommands, Gates: gateController,
@@ -115,7 +130,7 @@ func NewRuntime(ctx context.Context, dataDirectory string) (*Runtime, error) {
 		Interlocks: interlockCoordinator, Cycles: cycleCoordinator, CycleService: cycleService,
 		Leases: leaseService, LeaseSweeper: leaseSweeper, Safety: safetyService,
 		Snapshot:  monitor.NewSnapshot(cycleCoordinator, gateState, admissionService, signalService, safetyService, now),
-		Incidents: monitor.NewIncidentReview(store), Health: health, Recovery: recovery,
+		Incidents: monitor.NewIncidentReview(store), Handovers: handovers, Health: health, Recovery: recovery,
 		Chambers: chambers, Now: now,
 	}, nil
 }

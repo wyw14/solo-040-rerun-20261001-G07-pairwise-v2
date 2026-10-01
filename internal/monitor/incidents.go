@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"context"
+	"encoding/json"
 	"sort"
 	"time"
 
@@ -18,6 +19,7 @@ type Incident struct {
 	EventType  model.EventType `json:"event_type"`
 	Sequence   uint64          `json:"sequence"`
 	OccurredAt time.Time       `json:"occurred_at"`
+	Payload    json.RawMessage `json:"payload,omitempty"`
 }
 
 // IncidentReview derives operator-review items from persisted safety events.
@@ -28,6 +30,12 @@ type IncidentReview struct {
 func NewIncidentReview(store journal.Store) *IncidentReview { return &IncidentReview{store: store} }
 
 func (r *IncidentReview) List(ctx context.Context) ([]Incident, error) {
+	return r.Between(ctx, time.Time{}, time.Time{})
+}
+
+// Between returns incidents whose occurrence falls within [from, to].
+// A zero bound is treated as open-ended.
+func (r *IncidentReview) Between(ctx context.Context, from, to time.Time) ([]Incident, error) {
 	chambers, err := r.store.Chambers(ctx)
 	if err != nil {
 		return nil, err
@@ -39,6 +47,12 @@ func (r *IncidentReview) List(ctx context.Context) ([]Incident, error) {
 			return nil, err
 		}
 		for _, event := range events {
+			if !from.IsZero() && event.OccurredAt.Before(from) {
+				continue
+			}
+			if !to.IsZero() && event.OccurredAt.After(to) {
+				continue
+			}
 			severity, summary, include := incidentMeaning(event.Type)
 			if !include {
 				continue
@@ -46,7 +60,7 @@ func (r *IncidentReview) List(ctx context.Context) ([]Incident, error) {
 			result = append(result, Incident{
 				ID: event.ID, ChamberID: chamberID, Severity: severity,
 				Summary: summary, EventType: event.Type, Sequence: event.Sequence,
-				OccurredAt: event.OccurredAt,
+				OccurredAt: event.OccurredAt, Payload: event.Payload,
 			})
 		}
 	}

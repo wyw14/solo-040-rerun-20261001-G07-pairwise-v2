@@ -51,6 +51,17 @@ func (s *Service) Authorized(vesselID uuid.UUID, owner string, token uint64) boo
 	return ok && s.admission.OwnerAllowed(vesselID, owner, token, lease, s.now())
 }
 
+// Active returns leases that had not expired at the given time.
+func (s *Service) Active(now time.Time) []model.Lease {
+	var result []model.Lease
+	for _, leaseValue := range s.registry.Snapshot() {
+		if leaseValue.Active(now) {
+			result = append(result, leaseValue)
+		}
+	}
+	return result
+}
+
 func (s *Service) Release(ctx context.Context, chamberID string, vesselID uuid.UUID, owner string, token uint64) error {
 	if !s.registry.Release(vesselID, owner, token) {
 		return errors.New("lease owner or fencing token is stale")
